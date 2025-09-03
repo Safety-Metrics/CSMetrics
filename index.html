@@ -260,6 +260,10 @@
   </div>  
 </div>
 
+<!-- Global Export Button -->
+<div class="controls" style="margin:15px 0;">
+  <button id="exportAllTabs">📚 Export ALL Tabs (ZIP of CSVs)</button>
+</div>
 
   <!-- Incident Table -->
   <div id="incidents" class="tab-content active">
@@ -325,6 +329,35 @@
   </div>
 
 <script>
+  // Export all tabs as a single ZIP of CSVs
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('exportAllTabs')?.addEventListener('click', () => {
+    if (![fullIncidentData, fullManHoursData, fullRatesData, fullDisciplinaryData, fullSummaryData].some(a => a?.length)) {
+      alert('Data not loaded yet. Please refresh the tables first.');
+      return;
+    }
+
+    const zip = new JSZip();
+    const addCsv = (name, data) => {
+      if (!data || !data.length) return;
+      zip.file(`${name}.csv`, Papa.unparse(data));
+    };
+
+    addCsv('Master Sheet',     fullIncidentData);
+    addCsv('MAN HOURS',        fullManHoursData);
+    addCsv('TRIR & LTIR',      fullRatesData);
+    addCsv('DISCIPLINARY',     fullDisciplinaryData);
+    addCsv('SUMMARY',          fullSummaryData);
+
+    zip.generateAsync({ type: 'blob' }).then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'metrics-dashboard-all-tabs.zip';
+      a.click();
+    });
+  });
+});
+
 const SHEET_ID = '1iMo8gWO3z9UW3f_qInMJ2z5k9h1XiRhGrkLlAZWI-n4';
 const API_KEY = 'AIzaSyDWcMK3AUseaJT5r3c031n0bSiqpxaz4bo';
 let fullIncidentData = [], fullManHoursData = [], fullRatesData = [], fullSummaryData = [];
